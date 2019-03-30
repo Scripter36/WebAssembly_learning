@@ -18,6 +18,7 @@ WebAssembly.instantiate(typedArray, {
   env: env
 }).then(result => {
   console.log(result.instance.exports.add(9, 9))
+  console.log(result.instance.exports.factorial(9))
 }).catch(e => {
   // error caught
   console.log(e)
