@@ -1,25 +1,21 @@
+/// <reference path="../types/webassembly.d.ts" />
+
+const loader = require('assemblyscript/lib/loader')
 const fs = require('fs')
-var source = fs.readFileSync('./build/optimized.wasm')
-const env = {
-    memoryBase: 0,
-    tableBase: 0,
-    memory: new WebAssembly.Memory({
-      initial: 256
-    }),
-    table: new WebAssembly.Table({
-      initial: 0,
-      element: 'anyfunc'
-    })
-  }
 
-var typedArray = new Uint8Array(source)
-
-WebAssembly.instantiate(typedArray, {
-  env: env
-}).then(result => {
-  console.log(result.instance.exports.add(9, 9))
-  console.log(result.instance.exports.factorial(9))
-}).catch(e => {
-  // error caught
-  console.log(e)
+const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/optimized.wasm'), {
+  memoryBase: 0,
+  tableBase: 0,
+  memory: new WebAssembly.Memory({
+    initial: 256
+  }),
+  table: new WebAssembly.Table({
+    initial: 0,
+    element: 'anyfunc'
+  })
 })
+
+console.log(assemblyModule.add(assemblyModule.factorial(11), assemblyModule.factorial(13)))
+console.log(assemblyModule.factorial(15))
+const ptr = assemblyModule.newArray(new Int32Array([1, 2, 3]))
+console.log(assemblyModule.sum(ptr))

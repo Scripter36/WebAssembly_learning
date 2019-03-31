@@ -14,12 +14,15 @@
     "url": "git+https://github.com/Scripter36/WebAssembly_learning.git"
   },
   "author": "Scripter36 (1350adwx)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/Scripter36/WebAssembly_learning/issues"
   },
   "homepage": "https://github.com/Scripter36/WebAssembly_learning#readme",
   "dependencies": {
     "assemblyscript-typescript-loader": "^1.4.1"
+  },
+  "devDependencies": {
+    "assemblyscript": "github:AssemblyScript/assemblyscript"
   }
 }
