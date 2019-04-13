@@ -1,24 +1,28 @@
-// The entry file of your WebAssembly module.
-import 'allocator/tlsf'
+import 'allocator/arena'
 // @ts-ignore
 export { memory }
 
-export function add(a: i32, b: i32): i32 {
-  return a + b;
+let chunk: u32[]
+
+function getBlock (x: u8, y: u8, z: u8): u32 {
+  return chunk[x << 12 + z << 8 + y]
 }
 
-export function factorial(a: i32): i32 {
-  let result: i32 = 1
-  if (a === 1 || a === 0) return 1
-  else if (a < 0) return -1
-  for (let i: i32 = 2; i <= a; i++) {
-    result *= i
+export function optimize (data: u32[]): u32[] {
+  chunk = data
+  let result = 0
+  let frontFace: u32[] = []
+  for (let x: u8 = 0; x <= 0; x++) {
+    for (let y: u8 = 0; y <= 255; y++) {
+      for (let z: u8 = 0; z <= 15; z++) {
+        let block = getBlock(x, y, z)
+        let frontBlock = x === 15 ? 0 : getBlock(x + 1, y, z)
+        if (frontBlock === 0) {
+          frontFace[z << 8 + y] = block
+          result++
+        }
+      }
+    }
   }
-  return result
-}
-
-export function sum(arr: Int32Array): i32 {
-  var v = 0;
-  for (let i = 0, k = arr.length; i < k; ++i) v += arr[i];
-  return v;
+  return frontFace
 }

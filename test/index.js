@@ -3,7 +3,7 @@
 const loader = require('assemblyscript/lib/loader')
 const fs = require('fs')
 
-const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/optimized.wasm'), {
+const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/untouched.wasm'), {
   memoryBase: 0,
   tableBase: 0,
   memory: new WebAssembly.Memory({
@@ -14,8 +14,7 @@ const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/optimiz
     element: 'anyfunc'
   })
 })
-
-console.log(assemblyModule.add(assemblyModule.factorial(11), assemblyModule.factorial(13)))
-console.log(assemblyModule.factorial(15))
-const ptr = assemblyModule.newArray(new Int32Array([1, 2, 3]))
-console.log(assemblyModule.sum(ptr))
+const array = new Uint32Array(65536)
+for (let i = 0; i < 65536; i++) array[i] = 1
+const ptr = assemblyModule.newArray(array)
+console.log(assemblyModule.getArray(Uint32Array, assemblyModule.optimize(ptr)))
