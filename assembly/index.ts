@@ -6,6 +6,10 @@ declare namespace console {
   // @ts-ignore 정말 없애버리고 싶지만 디버그 때문에 만듬
   @external("console", "log")
   export function log(s: i32): void
+  // @ts-ignore
+  @external("console", "time")
+  export function time(): void
+  
 }
 
 let chunk: Uint32Array
@@ -34,6 +38,7 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
     }
   }
   if (id === 0) return result
+  console.time()
   while (true) {
     if (searchingX) {
       if (searchX === width - 1) {
@@ -66,6 +71,7 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
         result[nextIndex + 1] = startY
         result[nextIndex + 2] = searchX
         result[nextIndex + 3] = searchY
+        console.time()
         nextIndex += 4
         let findX: u8 = startX
         let findY: u8 = startY
