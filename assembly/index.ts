@@ -19,10 +19,10 @@ function getBlock (x: u8, y: u8, z: u8): u32 {
 }
 
 export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32Array {
-  let startX: u8 = 0
-  let startY: u8 = 0
-  let searchX: u8 = 0
-  let searchY: u8 = 0
+  let startX: u32 = 0
+  let startY: u32 = 0
+  let searchX: u32 = 0
+  let searchY: u32 = 0
   // let searchingX: bool = true
   let id: u32 = 0
   let result = new Uint32Array(faces.length * 4)
@@ -45,8 +45,8 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
     for (let i: i32 = startX + startY * width; i < faces.length; i++) {
       if (faces[i] !== 0) {
         id = faces[i]
-        startY = <u8> (i / width) | 0 // Force Integer
-        startX = <u8> (i - startY * width)
+        startY = <u32> (i / width) | 0 // Force Integer
+        startX = <u32> (i - startY * width)
         exist = true
         break
       }
@@ -59,7 +59,7 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
     searchX--
     let found = false
     for (searchY = startY; searchY < height; searchY++) {
-      for (let x: u8 = startX; x <= searchX; x++) {
+      for (let x: u32 = startX; x <= searchX; x++) {
         if (faces[searchY * width + x] !== id) {
           found = true
           break
@@ -72,8 +72,8 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
     result[nextIndex + 1] = startY
     result[nextIndex + 2] = searchX
     result[nextIndex + 3] = searchY
-    for (let x: u8 = startX; x <= searchX; x++) {
-      for (let y: u8 = startY; y <= searchY; y++) {
+    for (let x: u32 = startX; x <= searchX; x++) {
+      for (let y: u32 = startY; y <= searchY; y++) {
         faces[y * width + x] = 0
       }
     }
