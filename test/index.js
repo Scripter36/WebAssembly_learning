@@ -17,13 +17,15 @@ const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/optimiz
     table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
   }
 })
-const array = new Uint32Array(4096)
-for (let i = 0; i < 4096; i++) array[i] = Math.floor(Math.random() * 2)
+const array = new Uint32Array(65536)
+for (let i = 0; i < 65536; i++) array[i] = Math.floor(Math.random() * 2)
 const ptr = assemblyModule.newArray(array)
-console.log(`MARK >> ${process.hrtime()[1] / 1000000}`)
-const result = assemblyModule.getArray(Uint32Array, assemblyModule.mergeFace(ptr, 16, 256))
-console.log(`MARK >> ${process.hrtime()[1] / 1000000}`)
-// console.log(`estimated time: ${(next - previous) / 1000000}ms`) // 65536 faces: 30038ms. too slow | optimized: 28295ms.
+const before = process.hrtime()[1] / 1000000
+console.log(`MARK >> ${before}`)
+const result = assemblyModule.getArray(Uint32Array, assemblyModule.mergeFace(ptr, 256, 256))
+const after = process.hrtime()[1] / 1000000
+console.log(`MARK >> ${after}`)
+console.log(`RESULT >> ${after - before}ms`) // 7ms!!!!
 for (let i = 0; i < result.length; i += 4) {
   // console.log(`${result[i]}, ${result[i + 1]}, ${result[i + 2]}, ${result[i + 3]}`)
 }

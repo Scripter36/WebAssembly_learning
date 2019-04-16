@@ -23,11 +23,11 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
   let startY: u8 = 0
   let searchX: u8 = 0
   let searchY: u8 = 0
-  let searchingX: bool = true
+  // let searchingX: bool = true
   let id: u32 = 0
   let result = new Uint32Array(faces.length * 4)
   let nextIndex = 0
-  for (let i: i32 = 0; i < faces.length; i++) {
+  /* for (let i: i32 = 0; i < faces.length; i++) {
     if (faces[i] !== 0) {
       id = faces[i]
       startY = <u8> (i / width) | 0 // Force Integer
@@ -38,9 +38,48 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
     }
   }
   if (id === 0) return result
-  console.time()
+  console.time() */
+  let exist = false
   while (true) {
-    if (searchingX) {
+    exist = false
+    for (let i: i32 = startX + startY * width; i < faces.length; i++) {
+      if (faces[i] !== 0) {
+        id = faces[i]
+        startY = <u8> (i / width) | 0 // Force Integer
+        startX = <u8> (i - startY * width)
+        exist = true
+        break
+      }
+    }
+    if (!exist) break
+    let nowHeight = startY * width
+    for (searchX = startX; searchX < width; searchX++) {
+      if (faces[nowHeight + searchX] !== id) break
+    }
+    searchX--
+    let found = false
+    for (searchY = startY; searchY < height; searchY++) {
+      for (let x: u8 = startX; x <= searchX; x++) {
+        if (faces[searchY * width + x] !== id) {
+          found = true
+          break
+        }
+      }
+      if (found) break
+    }
+    searchY--
+    result[nextIndex] = startX
+    result[nextIndex + 1] = startY
+    result[nextIndex + 2] = searchX
+    result[nextIndex + 3] = searchY
+    for (let x: u8 = startX; x <= searchX; x++) {
+      for (let y: u8 = startY; y <= searchY; y++) {
+        faces[y * width + x] = 0
+      }
+    }
+    nextIndex += 4
+    
+    /* if (searchingX) {
       if (searchX === width - 1) {
         searchingX = false
         continue
@@ -106,7 +145,7 @@ export function mergeFace (faces: Uint32Array, width: u16, height: u16): Uint32A
           searchingX = true
         }
       }
-    }
+    } */
   }
   return result.subarray(0, nextIndex)
 }
