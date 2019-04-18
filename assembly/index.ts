@@ -18,7 +18,7 @@ function getBlock (x: u8, y: u8, z: u8): u32 {
   return chunk[x << 12 + z << 8 + y]
 }
 
-export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8, vertices: Int32Array, faces: Uint32Array): void {
+export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8, vertices: Int32Array, faces: Uint32Array, verticeIndex: i32, faceIndex: i32): Int32Array {
   let startX: u32 = 0
   let startY: u32 = 0
   let searchX: u32 = 0
@@ -58,7 +58,6 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
     }
     searchY--
 
-    let verticeIndex = nextIndex * 12
     if (xRot === 1) {
       vertices[verticeIndex] = startX
       vertices[verticeIndex + 3] = searchX
@@ -99,8 +98,8 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
       vertices[verticeIndex + 8] = 0
       vertices[verticeIndex + 11] = 0
     }
-    let faceIndex = nextIndex * 6
-    let faceVerticeIndex = nextIndex * 4
+
+    let faceVerticeIndex = verticeIndex / 3
     faces[faceIndex] = faceVerticeIndex
     faces[faceIndex + 1] = faceVerticeIndex + 1
     faces[faceIndex + 2] = faceVerticeIndex + 2
@@ -113,11 +112,21 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
       }
     }
     nextIndex++
+    verticeIndex += 12
+    faceIndex += 6
   }
+  let indexes = new Int32Array(2)
+  indexes[0] = verticeIndex
+  indexes[1] = faceIndex
+  return indexes
 }
 
-export function optimize (data: Uint32Array): Uint32Array {
+export function optimize (data: Uint32Array): void {
   chunk = data
+  let vertices = new Int32Array(data.length * 12)
+  let faces = new Uint32Array(data.length * 6)
+  let verticeIndex: i32 = 0
+  let faceIndex: i32 = 0
   for (let x: u8 = 0; x <= 0; x++) {
     let frontFace = new Uint32Array(4096)
     let backFace = new Uint32Array(4096)
@@ -134,10 +143,8 @@ export function optimize (data: Uint32Array): Uint32Array {
         }
       }
     }
-    let vertices = new Uint32Array(24576)
-    let faces = new Uint32Array(24576)
-    mergeFace(frontFace, 16, 256, 0b011, vertices, faces)
-    return vertices
+    let indexes = mergeFace(frontFace, 16, 256, 0b011, vertices, faces, verticeIndex, faceIndex)
+    verticeIndex = indexes[0]
+    faceIndex = indexes[1]
   }
-  return new Uint32Array(0)
 }
