@@ -13,12 +13,16 @@ declare namespace console {
 }
 
 let chunk: Uint32Array
+let vertices: Uint32Array
+let faces: Uint32Array
+let verticeIndex: i32
+let faceIndex: i32
 
-function getBlock (x: u8, y: u8, z: u8): u32 {
-  return chunk[x << 12 + z << 8 + y]
+function getBlock (x: u32, y: u32, z: u32): u32 {
+  return chunk[(x << 12) + (z << 8) + y]
 }
 
-export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8, vertices: Int32Array, faces: Uint32Array, verticeIndex: i32, faceIndex: i32): Int32Array {
+export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8): void {
   let startX: u32 = 0
   let startY: u32 = 0
   let searchX: u32 = 0
@@ -26,9 +30,9 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
   let id: u32 = 0
   let nextIndex = 0
   let exist = false
-  let xRot = rotType >> 0 & 1
+  let xRot = rotType >> 2 & 1
   let yRot = rotType >> 1 & 1
-  let zRot = rotType >> 2 & 1
+  let zRot = rotType >> 0 & 1
   while (true) {
     exist = false
     for (let i: i32 = startX + startY * width; i < faceData.length; i++) {
@@ -57,7 +61,6 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
       if (found) break
     }
     searchY--
-
     if (xRot === 1) {
       vertices[verticeIndex] = startX
       vertices[verticeIndex + 3] = searchX
@@ -115,36 +118,35 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
     verticeIndex += 12
     faceIndex += 6
   }
-  let indexes = new Int32Array(2)
-  indexes[0] = verticeIndex
-  indexes[1] = faceIndex
-  return indexes
 }
 
 export function optimize (data: Uint32Array): void {
   chunk = data
-  let vertices = new Int32Array(data.length * 12)
-  let faces = new Uint32Array(data.length * 6)
-  let verticeIndex: i32 = 0
-  let faceIndex: i32 = 0
-  for (let x: u8 = 0; x <= 0; x++) {
+  vertices = new Uint32Array(data.length * 12)
+  faces = new Uint32Array(data.length * 6)
+  verticeIndex = 0
+  faceIndex = 0
+  for (let x: u32 = 15; x <= 15; x++) {
     let frontFace = new Uint32Array(4096)
     let backFace = new Uint32Array(4096)
-    for (let y: u8 = 0; y <= 255; y++) {
-      for (let z: u8 = 0; z <= 15; z++) {
+    for (let y: u32 = 0; y <= 255; y++) {
+      for (let z: u32 = 0; z <= 15; z++) {
         let block = getBlock(x, y, z)
-        let frontBlock = x === 15 ? 0 : getBlock(x + 1, y, z)
-        if (frontBlock === 0) {
-          frontFace[z << 8 + y] = block
-        }
+        frontFace[(z << 8) + y] = block
         let backBlock = x === 0 ? 0 : getBlock(x - 1, y, z)
         if (backBlock === 0) {
-          backFace[z << 8 + y] = block
+          backFace[(z << 8) + y] = block
         }
       }
     }
-    let indexes = mergeFace(frontFace, 16, 256, 0b011, vertices, faces, verticeIndex, faceIndex)
-    verticeIndex = indexes[0]
-    faceIndex = indexes[1]
+    mergeFace(frontFace, 16, 256, 0b011)
   }
+}
+
+export function getVertices(): Uint32Array {
+  return vertices.subarray(0, verticeIndex)
+}
+
+export function getFaces(): Uint32Array {
+  return faces.subarray(0, faceIndex)
 }
