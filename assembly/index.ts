@@ -22,7 +22,7 @@ function getBlock (x: u32, y: u32, z: u32): u32 {
   return chunk[(x << 12) + (z << 8) + y]
 }
 
-export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8): void {
+export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotType: u8, depth: u32): void {
   let startX: u32 = 0
   let startY: u32 = 0
   let searchX: u32 = 0
@@ -67,10 +67,10 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
       vertices[verticeIndex + 6] = searchX
       vertices[verticeIndex + 9] = startX
     } else {
-      vertices[verticeIndex] = 0
-      vertices[verticeIndex + 3] = 0
-      vertices[verticeIndex + 6] = 0
-      vertices[verticeIndex + 9] = 0
+      vertices[verticeIndex] = depth
+      vertices[verticeIndex + 3] = depth
+      vertices[verticeIndex + 6] = depth
+      vertices[verticeIndex + 9] = depth
     }
     if (yRot === 1) {
       if (xRot === 0) {
@@ -85,10 +85,10 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
         vertices[verticeIndex + 10] = searchY
       }
     } else {
-      vertices[verticeIndex + 1] = 0
-      vertices[verticeIndex + 4] = 0
-      vertices[verticeIndex + 7] = 0
-      vertices[verticeIndex + 10] = 0
+      vertices[verticeIndex + 1] = depth
+      vertices[verticeIndex + 4] = depth
+      vertices[verticeIndex + 7] = depth
+      vertices[verticeIndex + 10] = depth
     }
     if (zRot === 1) {
       vertices[verticeIndex + 2] = startY
@@ -96,10 +96,10 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
       vertices[verticeIndex + 8] = searchY
       vertices[verticeIndex + 11] = searchY
     } else {
-      vertices[verticeIndex + 2] = 0
-      vertices[verticeIndex + 5] = 0
-      vertices[verticeIndex + 8] = 0
-      vertices[verticeIndex + 11] = 0
+      vertices[verticeIndex + 2] = depth
+      vertices[verticeIndex + 5] = depth
+      vertices[verticeIndex + 8] = depth
+      vertices[verticeIndex + 11] = depth
     }
 
     let faceVerticeIndex = verticeIndex / 3
@@ -126,20 +126,62 @@ export function optimize (data: Uint32Array): void {
   faces = new Uint32Array(data.length * 6)
   verticeIndex = 0
   faceIndex = 0
-  for (let x: u32 = 15; x <= 15; x++) {
+  for (let x: u32 = 0; x <= 15; x++) {
     let frontFace = new Uint32Array(4096)
     let backFace = new Uint32Array(4096)
     for (let y: u32 = 0; y <= 255; y++) {
       for (let z: u32 = 0; z <= 15; z++) {
         let block = getBlock(x, y, z)
-        frontFace[(z << 8) + y] = block
+        let frontBlock = x === 15 ? 0 : getBlock(x + 1, y, z)
+        if (frontBlock === 0) {
+          frontFace[(z << 8) + y] = block
+        }
         let backBlock = x === 0 ? 0 : getBlock(x - 1, y, z)
         if (backBlock === 0) {
           backFace[(z << 8) + y] = block
         }
       }
     }
-    mergeFace(frontFace, 16, 256, 0b011)
+    mergeFace(frontFace, 256, 16, 0b011, x)
+    mergeFace(backFace, 256, 16, 0b011, x)
+  }
+  for (let y: u32 = 0; y <= 255; y++) {
+    let frontFace = new Uint32Array(256)
+    let backFace = new Uint32Array(256)
+    for (let z: u32 = 0; z <= 15; z++) {
+      for (let x: u32 = 0; x <= 15; x++) {
+        let block = getBlock(x, y, z)
+        let frontBlock = y === 255 ? 0 : getBlock(x, y + 1, z)
+        if (frontBlock === 0) {
+          frontFace[(x << 4) + z] = block
+        }
+        let backBlock = y === 0 ? 0 : getBlock(x, y - 1, z)
+        if (backBlock === 0) {
+          backFace[(x << 4) + z] = block
+        }
+      }
+    }
+    mergeFace(frontFace, 16, 16, 0b101, y)
+    mergeFace(backFace, 16, 16, 0b101, y)
+  }
+  for (let z: u32 = 0; z <= 15; z++) {
+    let frontFace = new Uint32Array(4096)
+    let backFace = new Uint32Array(4096)
+    for (let y: u32 = 0; y <= 255; y++) {
+      for (let x: u32 = 0; x <= 15; x++) {
+        let block = getBlock(x, y, z)
+        let frontBlock = z === 15 ? 0 : getBlock(x, y, z + 1)
+        if (frontBlock === 0) {
+          frontFace[(x << 8) + y] = block
+        }
+        let backBlock = z === 0 ? 0 : getBlock(x, y, z - 1)
+        if (backBlock === 0) {
+          backFace[(x << 8) + y] = block
+        }
+      }
+    }
+    mergeFace(frontFace, 16, 256, 0b110, z)
+    mergeFace(backFace, 16, 256, 0b110, z)
   }
 }
 

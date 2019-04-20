@@ -18,7 +18,7 @@ const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/untouch
   }
 })
 const array = new Uint32Array(65536)
-for (let i = 0; i < 65536; i++) array[i] = 1
+for (let i = 0; i < 65536; i++) array[i] = Math.floor(Math.random() * 12) + 1
 const ptr = assemblyModule.newArray(array)
 const before = process.hrtime()
 // console.log(`MARK >> ${before[0] * 1000 + before[1] / 1000000}`)
@@ -26,7 +26,7 @@ assemblyModule.optimize(ptr)//assemblyModule.getArray(Uint32Array, assemblyModul
 const after = process.hrtime()
 // console.log(`MARK >> ${after[0] * 1000 + after[1] / 1000000}`)
 console.log(`RESULT >> ${after[0] * 1000 + after[1] / 1000000 - before[0] * 1000 - before[1] / 1000000}ms`) // only about 45ms with 1,048,576 faces!!!
-
+/*
 const vertices = assemblyModule.getArray(Uint32Array, assemblyModule.getVertices())
 const faces = assemblyModule.getArray(Uint32Array, assemblyModule.getFaces())
 
@@ -39,3 +39,4 @@ console.log('='.repeat(10))
 for (let i = 0; i < faces.length; i += 3) {
   console.log(`${faces[i]}, ${faces[i + 1]}, ${faces[i + 2]}`)
 }
+*/
