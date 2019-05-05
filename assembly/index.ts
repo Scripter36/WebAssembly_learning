@@ -4,17 +4,17 @@ export { memory }
 
 declare namespace console {
   // @ts-ignore 정말 없애버리고 싶지만 디버그 때문에 만듬
-  @external("console", "log")
-  export function log(s: i32): void
+  @external('console', 'log')
+  export function log (s: i32): void
   // @ts-ignore
-  @external("console", "time")
-  export function time(): void
-  
+  @external('console', 'time')
+  export function time (): void
+
 }
 
-let chunk: Uint32Array
-let vertices: Uint32Array
-let faces: Uint32Array
+let chunk: Uint32Array = new Uint32Array(65536)
+let vertices: Uint32Array = new Uint32Array(65536 * 12)
+let faces: Uint32Array = new Uint32Array(65536 * 6)
 let verticeIndex: i32
 let faceIndex: i32
 
@@ -28,7 +28,6 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
   let searchX: u32 = 0
   let searchY: u32 = 0
   let id: u32 = 0
-  let nextIndex = 0
   let exist = false
   let xRot = rotType >> 2 & 1
   let yRot = rotType >> 1 & 1
@@ -38,8 +37,8 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
     for (let i: i32 = startX + startY * width; i < faceData.length; i++) {
       if (faceData[i] !== 0) {
         id = faceData[i]
-        startY = <u32> (i / width) | 0 // Force Integer
-        startX = <u32> (i - startY * width)
+        startY = ((i / width) as u32) | 0 // Force Integer
+        startX = (i - startY * width) as u32
         exist = true
         break
       }
@@ -114,7 +113,6 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
         faceData[y * width + x] = 0
       }
     }
-    nextIndex++
     verticeIndex += 12
     faceIndex += 6
   }
@@ -122,8 +120,8 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
 
 export function optimize (data: Uint32Array): void {
   chunk = data
-  vertices = new Uint32Array(data.length * 12)
-  faces = new Uint32Array(data.length * 6)
+  vertices.fill(0)
+  faces.fill(0)
   verticeIndex = 0
   faceIndex = 0
   for (let x: u32 = 0; x <= 15; x++) {
@@ -183,12 +181,14 @@ export function optimize (data: Uint32Array): void {
     mergeFace(frontFace, 16, 256, 0b110, z)
     mergeFace(backFace, 16, 256, 0b110, z)
   }
+  memory.free(changetype<usize>(chunk))
+  memory.free(changetype<usize>(data))
 }
 
-export function getVertices(): Uint32Array {
+export function getVertices (): Uint32Array {
   return vertices.subarray(0, verticeIndex)
 }
 
-export function getFaces(): Uint32Array {
+export function getFaces (): Uint32Array {
   return faces.subarray(0, faceIndex)
 }

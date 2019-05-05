@@ -14,18 +14,21 @@ const assemblyModule = loader.instantiateBuffer(fs.readFileSync('./build/untouch
   },
   env: {
     memory: new WebAssembly.Memory({ initial: 256 }),
-    table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+    table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' }),
+    abort: console.log
   }
 })
+const testAmount = 1000
 const array = new Uint32Array(65536)
-for (let i = 0; i < 65536; i++) array[i] = Math.floor(Math.random() * 12) + 1
+for (let i = 0; i < 65536; i++) array[i] = Math.floor(Math.random() * 65536)
 const ptr = assemblyModule.newArray(array)
 const before = process.hrtime()
-// console.log(`MARK >> ${before[0] * 1000 + before[1] / 1000000}`)
-assemblyModule.optimize(ptr)//assemblyModule.getArray(Uint32Array, assemblyModule.mergeFace(ptr, 1024, 1024))
+for (let i = 0; i < testAmount; i++) {
+  assemblyModule.optimize(ptr);
+  assemblyModule.memory.reset() // TODO: fix memory leak
+}
 const after = process.hrtime()
-// console.log(`MARK >> ${after[0] * 1000 + after[1] / 1000000}`)
-console.log(`RESULT >> ${after[0] * 1000 + after[1] / 1000000 - before[0] * 1000 - before[1] / 1000000}ms`) // only about 45ms with 1,048,576 faces!!!
+console.log(`RESULT >> ${(after[0] * 1000 + after[1] / 1000000 - before[0] * 1000 - before[1] / 1000000) / testAmount}ms`) // only about 45ms with 1,048,576 faces!!!
 /*
 const vertices = assemblyModule.getArray(Uint32Array, assemblyModule.getVertices())
 const faces = assemblyModule.getArray(Uint32Array, assemblyModule.getFaces())
