@@ -14,7 +14,7 @@ declare namespace console {
 
 let chunk: Uint32Array = new Uint32Array(65536)
 let vertices: Uint32Array = new Uint32Array(65536 * 12)
-let faces: Uint32Array = new Uint32Array(65536 * 4)
+let faces: Uint32Array = new Uint32Array(65536 * 5)
 let verticeIndex: i32
 let faceIndex: i32
 
@@ -106,13 +106,14 @@ export function mergeFace (faceData: Uint32Array, width: u32, height: u32, rotTy
     faces[faceIndex + 1] = faceVerticeIndex + 1
     faces[faceIndex + 2] = faceVerticeIndex + 2
     faces[faceIndex + 3] = faceVerticeIndex + 3
+    faces[faceIndex + 4] = id
     for (let x: u32 = startX; x <= searchX; x++) {
       for (let y: u32 = startY; y <= searchY; y++) {
         faceData[y * width + x] = 0
       }
     }
     verticeIndex += 12
-    faceIndex += 4
+    faceIndex += 5
   }
 }
 
